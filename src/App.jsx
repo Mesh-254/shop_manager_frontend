@@ -7,6 +7,7 @@ import RegisterPage from "./pages/RegisterPage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import EmailVerificationSuccess from "./components/auth/EmailVerificationSuccess";
 import EmailExistsPage from "./pages/EmailExistsPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
 
         <Route path="/verify-email" element={<EmailVerificationPage />} />
         <Route path="/verification-success" element={<EmailVerificationSuccess/>} />
+        <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
 
 
         <Route path="/dashboard" element={<ShopManagerDashboard />} />

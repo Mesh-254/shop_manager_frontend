@@ -80,6 +80,8 @@ const RegisterPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const API_BASE_URL = import.meta.env.VITE_APP_API_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -177,19 +179,10 @@ const RegisterPage = () => {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    setGoogleLoading(true);
-    try {
-      // Simulate Google OAuth
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Google signup initiated");
-      // Handle Google signup redirect
-    } catch (error) {
-      setErrors({ submit: "Google signup failed. Please try again." });
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
+  const handleGoogleSignup = () => {
+  // Allauth handles signup/login, email verification bypass, user creation
+  window.location.href = `${API_BASE_URL}/accounts/google/login/`;
+};
 
   return (
     <AuthLayout
@@ -460,7 +453,7 @@ const RegisterPage = () => {
         <SocialButton
           provider="google"
           onClick={handleGoogleSignup}
-          loading={googleLoading}
+          loading={false}
           disabled={isLoading}
           icon={
             <svg className="w-6 h-6" viewBox="0 0 24 24">

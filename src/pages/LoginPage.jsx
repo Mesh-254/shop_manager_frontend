@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
 import InputField from "../components/auth/InputField";
 import SocialButton from "../components/auth/SocialButton";
 import { loginUser } from "../api/connection";
+
+
+
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -27,6 +30,8 @@ const LoginPage = () => {
 
   // useRef to manage the timeout ID for error messages, preventing re-renders from clearing it
   const errorTimeoutRef = useRef(null);
+
+  const navigate = useNavigate();
 
   // Pre-fill email from URL params if coming from other pages
   useEffect(() => {
@@ -84,6 +89,21 @@ const LoginPage = () => {
       showRegisterLink: false,
     });
   };
+
+  const handleSuccessfulLogin = (userData) => {
+    const { role, is_staff } = userData;
+
+    // SuperAdmin or ShopAdmin → Django admin
+    if (role === "SuperAdmin" || role === "ShopAdmin" || is_staff) {
+      window.location.href = `${API_BASE_URL}/admin/`;
+      return;
+    }
+
+    // Cashier (and others) → SPA dashboard
+    navigate("/dashboard");
+  };
+
+  const API_BASE_URL = import.meta.env.VITE_APP_API_URL;
 
   const handleInputChange = (field) => (e) => {
     setFormData((prev) => ({
@@ -239,60 +259,63 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  setSubmitError({ message: "", type: "", showResendLink: false, showRegisterLink: false });
+    e.preventDefault();
+    setIsLoading(true);
+    setSubmitError({
+      message: "",
+      type: "",
+      showResendLink: false,
+      showRegisterLink: false,
+    });
 
-  try {
-    const { user } = await loginUser(formData.email, formData.password, rememberMe);
-
-    // Successful login → redirect based on role
-    const role = user?.role;
-
-    if (role === "SuperAdmin" || role === "ShopAdmin") {
-      window.location.href = "/admin/dashboard"; // or use react-router navigate
-    } else if (role === "Cashier") {
-      window.location.href = "/cashier/pos";
-    } else {
-      throw new Error("Unknown user role");
-    }
-  } catch (err) {
-    console.error("Login failed:", err);
-
-    let message = err.message || "An error occurred during login";
-    let type = "general";
-    let showResend = false;
-    let showRegister = false;
-
-    if (err.type === "inactive") {
-      type = "inactive";
-      showResend = true;
-      message = err.detail || "Please verify your email first.";
-    } else if (message.includes("Invalid credentials")) {
-      type = "invalid_credentials";
-    }
-
-    setSubmitError({ message, type, showResendLink: showResend, showRegisterLink: showRegister });
-  } finally {
-    setIsLoading(false);
-  }
-};
-
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
     try {
-      // Simulate Google OAuth
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Google login initiated");
-      // Handle Google login redirect
-    } catch (error) {
-      setTimedSubmitError({
-        message: "Google login failed. Please try again.",
-        type: "google_error",
+      const { user } = await loginUser(
+        formData.email,
+        formData.password,
+        rememberMe,
+      );
+
+      handleSuccessfulLogin(user);
+
+      // // Successful login → redirect based on role
+      // const role = user?.role;
+
+      // if (role === "SuperAdmin" || role === "ShopAdmin") {
+      //   window.location.href = "/admin/dashboard"; // or use react-router navigate
+      // } else if (role === "Cashier") {
+      //   window.location.href = "/cashier/pos";
+      // } else {
+      //   throw new Error("Unknown user role");
+      // }
+    } catch (err) {
+      console.error("Login failed:", err);
+
+      let message = err.message || "An error occurred during login";
+      let type = "general";
+      let showResend = false;
+      let showRegister = false;
+
+      if (err.type === "inactive") {
+        type = "inactive";
+        showResend = true;
+        message = err.detail || "Please verify your email first.";
+      } else if (message.includes("Invalid credentials")) {
+        type = "invalid_credentials";
+      }
+
+      setSubmitError({
+        message,
+        type,
+        showResendLink: showResend,
+        showRegisterLink: showRegister,
       });
     } finally {
-      setGoogleLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${API_BASE_URL}/accounts/google/login/`;
   };
 
   return (
@@ -670,7 +693,7 @@ const LoginPage = () => {
         <SocialButton
           provider="google"
           onClick={handleGoogleLogin}
-          loading={googleLoading}
+          loading={false}
           disabled={isLoading}
           icon={
             <svg className="w-6 h-6" viewBox="0 0 24 24">

@@ -1,57 +1,81 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import CenteredAuthLayout from "./CenteredAuthLayout"
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import CenteredAuthLayout from "./CenteredAuthLayout";
+import { resendConfirmationEmail } from "../../api/connection";
 
 const EmailVerificationPage = ({ email = "user@example.com" }) => {
-  const [isResending, setIsResending] = useState(false)
-  const [resendSuccess, setResendSuccess] = useState(false)
-  const [countdown, setCountdown] = useState(60)
-  const [canResend, setCanResend] = useState(false)
+  const [isResending, setIsResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [resendError, setResendError] = useState("");
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
     if (countdown > 0 && !canResend) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
     } else if (countdown === 0) {
-      setCanResend(true)
+      setCanResend(true);
     }
-  }, [countdown, canResend])
+  }, [countdown, canResend]);
 
   const handleResendEmail = async () => {
-    setIsResending(true)
-    setResendSuccess(false)
+    if (!canResend || isResending) return;
+
+    setIsResending(true);
+    setResendSuccess(false);
+    setResendError(""); // Clear previous error
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const response = await resendConfirmationEmail(email); // Real API call
+      setResendSuccess(true);
+      setCountdown(60);
+      setCanResend(false);
 
-      setResendSuccess(true)
-      setCountdown(60)
-      setCanResend(false)
-
-      // Hide success message after 5 seconds
-      setTimeout(() => setResendSuccess(false), 5000)
+      // Hide success after 5 seconds
+      setTimeout(() => setResendSuccess(false), 5000);
     } catch (error) {
-      console.error("Failed to resend email:", error)
+      console.error("Failed to resend email:", error);
+      const errorData = error.response?.data || {};
+      if (errorData.error_type === "already_active") {
+        setResendError(
+          "This account is already active. You can sign in normally.",
+        );
+      } else if (errorData.error_type === "user_not_found") {
+        setResendError("No account found with this email address.");
+      } else {
+        setResendError(
+          errorData.detail ||
+            "Failed to resend confirmation email. Please try again.",
+        );
+      }
     } finally {
-      setIsResending(false)
+      setIsResending(false);
     }
-  }
+  };
 
   const handleChangeEmail = () => {
     // Navigate back to registration or show email change form
-    window.history.back()
-  }
+    window.history.back();
+  };
 
   return (
-    <CenteredAuthLayout title="Check Your Email" subtitle="We've sent a verification link to your inbox">
+    <CenteredAuthLayout
+      title="Check Your Email"
+      subtitle="We've sent a verification link to your inbox"
+    >
       <div className="text-center space-y-8">
         {/* Email Icon */}
         <div className="flex justify-center mb-8">
           <div className="w-24 h-24 bg-gradient-to-br from-teal-100 to-teal-200 rounded-full flex items-center justify-center shadow-lg">
-            <svg className="w-12 h-12 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-12 h-12 text-teal-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -64,17 +88,27 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
 
         {/* Main Message */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-900">Verification Email Sent!</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Verification Email Sent!
+          </h2>
           <div className="bg-teal-50 border-2 border-teal-200 rounded-2xl p-6">
-            <p className="text-lg text-gray-700 leading-relaxed">We've sent a verification link to:</p>
-            <p className="text-xl font-bold text-teal-700 mt-2 break-all">{email}</p>
+            <p className="text-lg text-gray-700 leading-relaxed">
+              We've sent a verification link to:
+            </p>
+            <p className="text-xl font-bold text-teal-700 mt-2 break-all">
+              {email}
+            </p>
           </div>
         </div>
 
         {/* Instructions */}
         <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 text-left">
           <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
               <path
                 fillRule="evenodd"
                 d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
@@ -109,14 +143,20 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
         {resendSuccess && (
           <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-5 animate-fade-in">
             <div className="flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <svg
+                className="w-6 h-6 text-green-600 mr-3"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
                 <path
                   fillRule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                   clipRule="evenodd"
                 />
               </svg>
-              <p className="text-green-700 font-semibold text-lg">Verification email sent successfully!</p>
+              <p className="text-green-700 font-semibold text-lg">
+                Verification email sent successfully!
+              </p>
             </div>
           </div>
         )}
@@ -140,7 +180,12 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
               </>
             ) : canResend ? (
               <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -152,7 +197,12 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -165,6 +215,18 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
             )}
           </button>
 
+          {/* Success/Error Messages */}
+          {resendSuccess && (
+            <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 text-green-700">
+              Verification email resent successfully! Check your inbox.
+            </div>
+          )}
+          {resendError && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 text-red-700">
+              {resendError}
+            </div>
+          )}
+
           {/* Change Email Button */}
           <button
             onClick={handleChangeEmail}
@@ -176,7 +238,9 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
 
         {/* Help Section */}
         <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Didn't receive the email?</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            Didn't receive the email?
+          </h3>
           <div className="text-base text-gray-600 space-y-2">
             <p>• Check your spam or junk folder</p>
             <p>• Make sure {email} is correct</p>
@@ -187,7 +251,10 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
           <div className="mt-4 pt-4 border-t border-gray-300">
             <p className="text-sm text-gray-500">
               Need help?{" "}
-              <Link to="/support" className="text-teal-600 hover:text-teal-700 font-semibold hover:underline">
+              <Link
+                to="/support"
+                className="text-teal-600 hover:text-teal-700 font-semibold hover:underline"
+              >
                 Contact Support
               </Link>
             </p>
@@ -198,7 +265,10 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
         <div className="text-center pt-6">
           <p className="text-gray-600 text-lg">
             Remember your password?{" "}
-            <Link to="/login" className="text-teal-600 hover:text-teal-700 font-bold transition-colors hover:underline">
+            <Link
+              to="/login"
+              className="text-teal-600 hover:text-teal-700 font-bold transition-colors hover:underline"
+            >
               Back to Sign In
             </Link>
           </p>
@@ -215,7 +285,7 @@ const EmailVerificationPage = ({ email = "user@example.com" }) => {
         </div>
       </div>
     </CenteredAuthLayout>
-  )
-}
+  );
+};
 
-export default EmailVerificationPage
+export default EmailVerificationPage;
