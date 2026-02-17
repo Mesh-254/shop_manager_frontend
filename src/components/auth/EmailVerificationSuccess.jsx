@@ -1,21 +1,23 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CenteredAuthLayout from "./CenteredAuthLayout";
+import { useState, useEffect } from "react";
+
+
 
 const EmailVerificationSuccess = () => {
   const [countdown, setCountdown] = useState(5);
+  const navigate = useNavigate(); // Recommended over window.location for SPA routing
 
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     } else {
-      // Auto-redirect to dashboard
-      window.location.href = "/dashboard";
+      // Recommended: redirect to login first (since verification does NOT auto-login the user)
+      navigate("/login?verified=true"); // Add query param so login page can show "Email verified!" message
     }
-  }, [countdown]);
+  }, [countdown, navigate]);
 
   return (
     <CenteredAuthLayout

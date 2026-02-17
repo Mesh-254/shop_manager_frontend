@@ -172,6 +172,18 @@ export const registerUser = async (userData) => {
   }
 };
 
+export const confirmPasswordReset = async (token, password) => {
+  try {
+    const response = await api.post(
+      `/api/accounts/password-reset-confirm/${token}/`,
+      { password }, // Backend expects "password", not "new_password"
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { detail: "Password reset failed" };
+  }
+};
+
 /**
  * Logout – clear tokens and redirect
  */
@@ -219,13 +231,6 @@ export const resendConfirmationEmail = async (email) => {
 export const requestPasswordReset = async (email) => {
   return api.post("/api/accounts/password-reset/", {
     email: email.trim().toLowerCase(),
-  });
-};
-
-export const confirmPasswordReset = async (token, newPassword) => {
-  return api.post("/api/accounts/password-reset-confirm/", {
-    token,
-    new_password: newPassword,
   });
 };
 

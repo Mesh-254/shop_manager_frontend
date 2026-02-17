@@ -8,6 +8,8 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import EmailVerificationSuccess from "./components/auth/EmailVerificationSuccess";
 import EmailExistsPage from "./pages/EmailExistsPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import  ForgotPassword  from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
 
 
         <Route path="/dashboard" element={<ShopManagerDashboard />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       </Routes>
     </BrowserRouter>

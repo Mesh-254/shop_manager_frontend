@@ -690,7 +690,7 @@ const LoginPage = () => {
           </div>
         </div>
 
-        <SocialButton
+        {/* <SocialButton
           provider="google"
           onClick={handleGoogleLogin}
           loading={false}
@@ -715,7 +715,8 @@ const LoginPage = () => {
               />
             </svg>
           }
-        />
+        /> */}
+        
 
         <div className="text-center pt-8">
           <p className="text-gray-600 text-lg">

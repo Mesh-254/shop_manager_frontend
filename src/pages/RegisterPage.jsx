@@ -450,7 +450,7 @@ const RegisterPage = () => {
           </div>
         </div>
 
-        <SocialButton
+        {/* <SocialButton
           provider="google"
           onClick={handleGoogleSignup}
           loading={false}
@@ -475,7 +475,7 @@ const RegisterPage = () => {
               />
             </svg>
           }
-        />
+        /> */}
 
         <div className="text-center pt-8">
           <p className="text-gray-600 text-lg">
